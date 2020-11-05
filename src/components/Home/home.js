@@ -30,15 +30,6 @@ const Home = () => {
               start={0}
               amount={3}
             />
-
-            {/* <NewsSlider
-                type="featured"
-                start={0}
-                amount={3}
-                settings={{
-                    dots: true
-                }}
-            /> */}
         </div>
     )
 }

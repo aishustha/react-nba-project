@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
-import axios from 'axios';
+import { firebaseArticles, firebaseLooper } from '../../../firebase';
 import SliderTemplates from './slider_templates';
-import { URL } from '../../../config';
+
+//wee are using firebase
+// import { URL } from '../../../config';
+// import axios from 'axios';
 
 class NewsSlider extends Component {
 
@@ -11,17 +14,28 @@ class NewsSlider extends Component {
     }
 
     componentWillMount() {
-        axios.get(`${URL}/articles?_start=${this.props.start}&_end=${this.props.amount}`)
-        .then( response => {
-            // console.log(response.data)
+
+        //limittofirst- get 3 data from first nad we use running once and then promise which contains snapshots which contains all data
+        firebaseArticles.limitToFirst(3).once('value')
+        .then((snapshot) => {
+            const news = firebaseLooper(snapshot)
             this.setState({
-                news:response.data
+                news
             })
         })
+
+
+        // axios.get(`${URL}/articles?_start=${this.props.start}&_end=${this.props.amount}`)
+        // .then( response => {
+        //     // console.log(response.data)
+        //     this.setState({
+        //         news:response.data
+        //     })
+        // })
     }
 
     render() {
-        //console.log(this.state.news)
+        console.log(this.state)
         return (
             <SliderTemplates data={this.state.news} type={this.props.type} settings={this.props.settings}/>
         )

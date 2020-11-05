@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { URL } from '../../../config';
+import { firebaseTeams, firebaseArticles, firebaseLooper } from '../../../firebase';
+// import axios from 'axios';
+// import { URL } from '../../../config';
 import newslistStyle from './newsList.module.scss';
 import Button from '../Buttons/buttons';
 import CardInfo from '../../widgets/CardInfo/cardInfo';
+
 
 class NewsList extends Component {
 
@@ -27,32 +29,56 @@ class NewsList extends Component {
 
         //less than one
         if(this.state.teams.length < 1){
-            axios.get(`${URL}/teams`)
-            .then(response => {
+            firebaseTeams.once('value')
+            .then((snapshot)=>{
+                const teams = firebaseLooper(snapshot);
                 this.setState({
-                    teams: response.data
+                    teams
                 })
             })
+
+
+            // axios.get(`${URL}/teams`)
+            // .then(response => {
+            //     this.setState({
+            //         teams: response.data
+            //     })
+            // })
         }
 
 
-         //request
-         axios.get(`${URL}/articles?_start=${start}&_end=${end}`)
-         //catch promise
-         .then( response => {
-             this.setState({
-                 //loadmore added other data, we have items already keep them and add other data 
-                 items:[...this.state.items, ...response.data],
-                 start,
-                 end
-             })
-         })
+        
+        firebaseArticles.orderByChild('id').startAt(start).endAt(end).once('value')
+        .then((snapshot) => {
+            const articles = firebaseLooper(snapshot);
+            this.setState({ 
+                items:[...this.state.items,...articles],
+                start,
+                end
+            })
+        
+        })
+
+        .catch(e => {
+            console.log(e)
+        })
+        //  //request
+        //  axios.get(`${URL}/articles?_start=${start}&_end=${end}`)
+        //  //catch promise
+        //  .then( response => {
+        //      this.setState({
+        //          //loadmore added other data, we have items already keep them and add other data 
+        //          items:[...this.state.items, ...response.data],
+        //          start,
+        //          end
+        //      })
+        //  })
     }
 
     //request - start gonaa be actual end i.e starting from the end article no.3
     loadMore = () => {
         let end = this.state.end + this.state.amount; //end + 3
-        this.request(this.state.end, end) //staring from end,
+        this.request(this.state.end + 1, end) //staring from end,
 
         //go to reqest then, this.state.end =3 if we click load more
         //end =6
